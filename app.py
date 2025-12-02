@@ -2,10 +2,22 @@ import streamlit as st
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
 import matplotlib.ticker as ticker
 import time as t
 import tg43_core as tg  # TG-43 formulation engine
+from matplotlib.colors import LinearSegmentedColormap, LogNorm
+
+clinical_cmap = LinearSegmentedColormap.from_list(
+    "clinical",
+    [
+        (0.0,  "#00007F"),  # dark blue
+        (0.2,  "#0000FF"),  # blue
+        (0.4,  "#00FFFF"),  # cyan
+        (0.6,  "#00FF00"),  # green
+        (0.8,  "#FFFF00"),  # yellow
+        (1.0,  "#FF0000"),  # red
+    ]
+)
 
 
 # -----------------------------------------------------------------------------
@@ -318,9 +330,30 @@ with tab_plane:
             vmin = max(vmax / 1e4, 1e-6)
             levels = np.geomspace(vmin, vmax, 12)
 
+
+
+
             fig, ax = plt.subplots(figsize=(6.4, 5.6))
-            cf = ax.contourf(xs_grid, zs_grid, Dplane, levels=levels, norm=LogNorm(vmin=levels[0], vmax=levels[-1]))
-            cs = ax.contour(xs_grid, zs_grid, Dplane, levels=levels)
+
+            # Clinical-style log-scaled filled dose map
+            cf = ax.contourf(
+                xs_grid,
+                zs_grid,
+                Dplane,
+                levels=levels,
+                cmap=clinical_cmap,
+                norm=LogNorm(vmin=levels[0], vmax=levels[-1]),
+            )
+
+            # Isodose lines in black (TPS-like)
+            cs = ax.contour(
+                xs_grid,
+                zs_grid,
+                Dplane,
+                levels=levels,
+                colors="black",
+                linewidths=0.8,
+            )
             ax.clabel(cs, inline=True, fontsize=8, fmt="%.0f")
 
             ax.set_xlabel("x (cm)")
@@ -334,6 +367,43 @@ with tab_plane:
             cbar = fig.colorbar(cf)
             cbar.set_label("Dose (cGy)")
 
+            # fig, ax = plt.subplots(figsize=(6.4, 5.6))
+            # cf = ax.contourf(xs_grid, zs_grid, Dplane, levels=levels, norm=LogNorm(vmin=levels[0], vmax=levels[-1]))
+            # cs = ax.contour(xs_grid, zs_grid, Dplane, levels=levels)
+            # ax.clabel(cs, inline=True, fontsize=8, fmt="%.0f")
+
+            # # fig, ax = plt.subplots(figsize=(6.4, 5.6))
+            # # # Filled dose map
+            # # cf = ax.contourf(
+            # #     xs_grid,
+            # #     zs_grid,
+            # #     Dplane,
+            # #     levels=levels,
+            # #     cmap=clinical_cmap,
+            # # )
+
+            # # Isodose lines in black (TPS-like)
+            # cs = ax.contour(
+            #     xs_grid,
+            #     zs_grid,
+            #     Dplane,
+            #     levels=levels,
+            #     colors="black",
+            #     linewidths=0.8,
+            # )
+            # ax.clabel(cs, inline=True, fontsize=8, fmt="%.0f")
+
+            # ax.set_xlabel("x (cm)")
+            # ax.set_ylabel("z (cm)")
+            # ax.set_title(
+            #     f"Multi-dwell dose (cGy) at y = {y_slice:.2f} cm\n"
+            #     f"Activity = {activity_Ci:.2f} Ci"
+            # )
+            # ax.set_aspect("equal", "box")
+
+            # cbar = fig.colorbar(cf)
+            # cbar.set_label("Dose (cGy)")
+
             # Spinner (needs a message and proper indentation)
             with st.spinner("Plot isodose lines..."):
                 t.sleep(0.2)
@@ -346,24 +416,60 @@ with tab_plane:
 # balloons 
 st.balloons()
 
+
+
 st.markdown(
     """
-    <div style="
-        margin-top: 3rem;
-        background-color: #0a0a0a;
-        padding: 10px 0;
-        text-align: center;
-        font-size: 14px;
-        letter-spacing: 0.3px;
-        border-radius: 6px;
-    ">
-        <span style="color:#FFD200; font-weight:600;">
-            © 2025 Alexander F. I. Osman — All Rights Reserved.
-        </span>
+    <style>
+        .footer-box {
+            background-color: #000000;
+            padding: 14px;
+            border-radius: 10px;
+            text-align: center;
+            color: #F7B718;  /* VCU Gold */
+            font-size: 14.5px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        .footer-link {
+            color: #F7B718;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .footer-link:hover {
+            color: #ffffff;
+        }
+    </style>
+
+    <div class="footer-box">
+        © 2025 Alexander F. I. Osman — All Rights Reserved.<br>
+        For technical issues or support, contact:
+        <a class="footer-link" href="mailto:alexanderfadul@yahoo.com">
+            alexanderfadul@yahoo.com
+        </a>
     </div>
     """,
     unsafe_allow_html=True
 )
+
+# st.markdown(
+#     """
+#     <div style="
+#         margin-top: 3rem;
+#         background-color: #0a0a0a;
+#         padding: 10px 0;
+#         text-align: center;
+#         font-size: 14px;
+#         letter-spacing: 0.3px;
+#         border-radius: 6px;
+#     ">
+#         <span style="color:#FFD200; font-weight:600;">
+#             © 2025 Alexander F. I. Osman — All Rights Reserved.
+#         </span>
+#     </div>
+#     """,
+#     unsafe_allow_html=True
+# )
 
 
 # ############################## * THE END * ######################
