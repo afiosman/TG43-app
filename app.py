@@ -566,9 +566,9 @@ st.markdown(
     </style>
 
     <div class="footer-box">
-        © 2025 • For questions or suggestions, please contact:<br>
-        Alexander F. I. Osman, PhD Student, Department of Radiation Oncology, School of Medicine<br>
-        Virginia Commonwealth University<br>
+        © 2025 • For questions, suggestions, or bug reports, please contact:<br>
+        <strong>Alexander F. I. Osman</strong>, PhD Student,<br>
+        Department of Radiation Oncology, Virginia Commonwealth University<br>
         Email:
         <a class="footer-link" href="mailto:alexanderfadul@yahoo.com">
             alexanderfadul@yahoo.com
