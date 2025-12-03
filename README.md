@@ -6,12 +6,12 @@ A Streamlit-based educational and research tool implementing the **TG-43(U1)** d
 
 ## 🧭 Overview
 
-This web application provides a modern, interactive implementation of the **TG-43(U1)** protocol for high-dose-rate (HDR) Ir-192 brachytherapy using the Varian VS2000 source model.
+This web application provides an interactive implementation of the **TG-43(U1)** protocol for high-dose-rate (HDR) Ir-192 brachytherapy using the Varian VS2000 source model.
 
 It supports:
 
 - Point-dose evaluation for multiple dwell positions  
-- 2D isodose visualization using TPS-style color maps  
+- 2D isodose visualization   
 - Fully interactive dwell editing (positions, dwell times, orientation angles)  
 - Real-time recalculation based on TG-43 parameters  
 
@@ -38,20 +38,16 @@ See disclaimer below.
 - Multi-dwell support  
 
 ### ✔ Interactive UI (Streamlit-based)
-- Modern VCU-style interface  
 - Adjustable source activity (Ci)  
 - Fully editable dwell table  
 - Real-time TG-43 dose computation  
 
-### ✔ Isodose Visualization
-- Log-scaled contour map  
-- Clinical colormap (blue → cyan → green → yellow → red)  
-- TPS-style black isodose lines  
-- Clean labeling + colorbar optimization  
-
 ### ✔ Point Dose Calculator
 - Compute dose to any (x, y, z) point  
 - Multi-dwell summation  
+
+### ✔ Isodose Visualization
+- Isodose lines (absolute & relative dose distributions)
 
 ### ✔ Versioning
 Current version: **v0.1.0**
