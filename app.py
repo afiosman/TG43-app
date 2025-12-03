@@ -1,3 +1,4 @@
+
 import streamlit as st
 import numpy as np
 import pandas as pd
@@ -5,7 +6,9 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import time as t
 import tg43_core as tg  # TG-43 formulation engine
+
 from matplotlib.colors import LinearSegmentedColormap, LogNorm
+from matplotlib.ticker import LogLocator
 
 clinical_cmap = LinearSegmentedColormap.from_list(
     "clinical",
