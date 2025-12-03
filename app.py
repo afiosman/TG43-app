@@ -1,14 +1,14 @@
 # app.py  — TG-43 Ir-192 HDR Dose Tool (v0.1.0)
 
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Versioning
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 APP_VERSION = "0.1.0"  # major.minor.patch
 APP_NAME    = "TG-43 Ir-192 Dose Calculation Model"
 
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Imports
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 import time as t
 
 import numpy as np
@@ -21,9 +21,9 @@ from matplotlib.colors import LinearSegmentedColormap, LogNorm
 import tg43_core as tg  # TG-43 formulation engine
 
 
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Clinical TPS-style colormap (blue → cyan → green → yellow → red)
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 clinical_cmap = LinearSegmentedColormap.from_list(
     "clinical",
     [
@@ -36,19 +36,18 @@ clinical_cmap = LinearSegmentedColormap.from_list(
     ],
 )
 
-
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Page configuration
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 st.set_page_config(
     page_title=APP_NAME,
     page_icon="🧮",
     layout="wide",
 )
 
-# -----------------------------------------------------------------------------
-# Global CSS (VCU style + compact sidebar)
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
+# Global CSS (compact sidebar)
+# -------------------------------------------------------------------------
 st.markdown(
     """
     <style>
@@ -146,10 +145,9 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Sidebar: logo, title, version, feature list
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 st.sidebar.image("logo.png", width=160)
 
 st.sidebar.markdown("<div class='thin-divider'></div>", unsafe_allow_html=True)
@@ -195,10 +193,9 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Main header (title + intro)
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 st.markdown(
     """
     <h1 style="margin-top:0.5rem; margin-bottom:0.35rem; font-size:1.85rem;">
@@ -219,10 +216,9 @@ not as a clinically commissioned TPS.
 """
 )
 
-
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Sidebar: source & dwell setup
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 st.sidebar.header("Source & Dwell Setup")
 
 # 1) Source activity (Ci)
@@ -286,18 +282,16 @@ for th, ph in zip(edited_dwells["theta_deg"], edited_dwells["phi_deg"]):
     axes_list.append(tg.axis_from_polar(th, ph))
 dwell_axis_u = np.vstack(axes_list)                                   # (N,3)
 
-
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Tabs for different calculations
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 tab_point, tab_plane = st.tabs(
     ["**Point Dose (multi-dwell)**", "**2D Isodose Plane (multi-dwell)**"]
 )
 
-
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Tab 1: Dose at a single point
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 with tab_point:
     st.subheader("Dose at a Point from Multiple Dwells")
 
@@ -328,10 +322,9 @@ with tab_point:
         with st.expander("Dwell table used"):
             st.dataframe(edited_dwells)
 
-
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Tab 2: 2D isodose plane (x–z, y = const)
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 with tab_plane:
     st.subheader("2D Isodose in X–Z Plane from Multiple Dwells")
 
@@ -397,18 +390,25 @@ with tab_plane:
                 # Fixed clinical % isodose levels
                 levels = np.array([10, 20, 50, 80, 90, 95, 100, 150, 200], float)
 
+                # Log color scaling for relative mode
                 norm = LogNorm(vmin=levels[0], vmax=levels[-1])
 
             else:
-                # Absolute dose mode
+                # Absolute dose mode (log scale)
                 D_for_plot = Dplane
                 cbar_label = "Dose (cGy)"
 
                 finite_abs = np.isfinite(D_for_plot)
-                vmax = np.percentile(D_for_plot[finite_abs], 99.5)
-                vmin = max(vmax / 1e4, 1e-6)
-                levels = np.geomspace(vmin, vmax, 12)
+                vmax = np.percentile(D_for_plot[finite_abs], 99.0)
 
+                # Set lower bound (e.g. 100 cGy) but make sure it's < vmax
+                vmin = max(100.0, 1e-3)
+                if vmin >= vmax:
+                    # fallback if field is very low dose
+                    vmin = max(vmax / 10.0, 1e-3)
+
+                # Log-spaced contour levels + log color scale
+                levels = np.geomspace(vmin, vmax, 10)
                 norm = LogNorm(vmin=levels[0], vmax=levels[-1])
 
             # ------------------------------------------------
@@ -418,7 +418,9 @@ with tab_plane:
 
             # Colorwash
             cf = ax.contourf(
-                xs_grid, zs_grid, D_for_plot,
+                xs_grid,
+                zs_grid,
+                D_for_plot,
                 levels=levels,
                 cmap=clinical_cmap,
                 norm=norm,
@@ -426,7 +428,9 @@ with tab_plane:
 
             # Contours (black lines)
             cs = ax.contour(
-                xs_grid, zs_grid, D_for_plot,
+                xs_grid,
+                zs_grid,
+                D_for_plot,
                 levels=levels,
                 colors="black",
                 linewidths=0.4,
@@ -482,7 +486,8 @@ with tab_plane:
 
                     # Legend handle
                     ax.scatter(
-                        [], [],
+                        [],
+                        [],
                         s=20,
                         c="white",
                         edgecolors="black",
@@ -516,8 +521,13 @@ with tab_plane:
             cbar.ax.tick_params(labelsize=6)
 
             if dose_mode == "Relative dose (% of Rx)":
+                # clean % ticks
                 cbar.set_ticks(levels)
                 cbar.set_ticklabels([f"{v:.0f}%" for v in levels])
+            else:
+                # clean cGy ticks, no scientific notation
+                cbar.set_ticks(levels)
+                cbar.set_ticklabels([f"{v:.0f}" for v in levels])
 
             with st.spinner("Plotting isodose lines..."):
                 t.sleep(0.2)
@@ -527,10 +537,9 @@ with tab_plane:
             with st.expander("Dwell table used"):
                 st.dataframe(edited_dwells)
 
-
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 # Celebration & Footer
-# -----------------------------------------------------------------------------
+# -------------------------------------------------------------------------
 st.balloons()
 
 st.markdown(
@@ -571,57 +580,8 @@ st.markdown(
 
 # ############################## * THE END * ######################
 
-
-# # app.py  — TG-43 Ir-192 HDR Dose Tool (v0.1.0)
-
 # # -----------------------------------------------------------------------------
-# # Versioning
-# # -----------------------------------------------------------------------------
-# APP_VERSION = "0.1.0"  # major.minor.patch
-# APP_NAME    = "TG-43 Ir-192 Dose Calculation Model"
-
-# # -----------------------------------------------------------------------------
-# # Imports
-# # -----------------------------------------------------------------------------
-# import time as t
-
-# import numpy as np
-# import pandas as pd
-# import streamlit as st
-# import matplotlib.pyplot as plt
-
-# from matplotlib.colors import LinearSegmentedColormap, LogNorm
-
-# import tg43_core as tg  # TG-43 formulation engine
-
-
-# # -----------------------------------------------------------------------------
-# # Clinical TPS-style colormap (blue → cyan → green → yellow → red)
-# # -----------------------------------------------------------------------------
-# clinical_cmap = LinearSegmentedColormap.from_list(
-#     "clinical",
-#     [
-#         (0.0,  "#00007F"),  # dark blue
-#         (0.2,  "#0000FF"),  # blue
-#         (0.4,  "#00FFFF"),  # cyan
-#         (0.6,  "#00FF00"),  # green
-#         (0.8,  "#FFFF00"),  # yellow
-#         (1.0,  "#FF0000"),  # red
-#     ],
-# )
-
-
-# # -----------------------------------------------------------------------------
-# # Page configuration
-# # -----------------------------------------------------------------------------
-# st.set_page_config(
-#     page_title=APP_NAME,
-#     page_icon="🧮",
-#     layout="wide",
-# )
-
-# # -----------------------------------------------------------------------------
-# # Global CSS (VCU style + compact sidebar)
+# # Global CSS (compact sidebar)
 # # -----------------------------------------------------------------------------
 # st.markdown(
 #     """
@@ -991,47 +951,5 @@ st.markdown(
 
 #             with st.expander("Dwell table used"):
 #                 st.dataframe(edited_dwells)
-
-
-# # -----------------------------------------------------------------------------
-# # Celebration & Footer
-# # -----------------------------------------------------------------------------
-# st.balloons()
-
-# st.markdown(
-#     """
-#     <style>
-#         .footer-box {
-#             background-color: #000000;
-#             padding: 14px;
-#             border-radius: 10px;
-#             text-align: center;
-#             color: #F7B718;  /* VCU Gold */
-#             font-size: 14.5px;
-#             margin-top: 30px;
-#             margin-bottom: 10px;
-#         }
-#         .footer-link {
-#             color: #F7B718;
-#             text-decoration: none;
-#             font-weight: bold;
-#         }
-#         .footer-link:hover {
-#             color: #ffffff;
-#         }
-#     </style>
-
-#     <div class="footer-box">
-#         © 2025 • For questions or suggestions, please contact:<br>
-#         Alexander F. I. Osman, PhD Student, Department of Radiation Oncology, School of Medicine<br>
-#         Virginia Commonwealth University<br>
-#         Email:
-#         <a class="footer-link" href="mailto:alexanderfadul@yahoo.com">
-#             alexanderfadul@yahoo.com
-#         </a>
-#     </div>
-#     """,
-#     unsafe_allow_html=True,
-# )
 
 # # ############################## * THE END * ######################
