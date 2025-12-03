@@ -1,9 +1,8 @@
 # TG-43 Ir-192 HDR Dose Calculation Tool (v0.1.0)
 
-
 ## 🧭 Overview
 
-A lightweight Streamlit app implementing the **TG-43(U1)** formalism for the **Varian VS2000 Ir-192 HDR source**, designed for teaching, research, independent verification / secondary checks, QA method development, etc. 
+A lightweight Streamlit app implementing the **TG-43(U1)** formalism for the **Varian VS2000 Ir-192 HDR source**, designed for teaching, research, independent verification / secondary checks, QA method development, etc.
 
 ---
 
@@ -30,6 +29,7 @@ git clone https://github.com/afiosman/TG43-app
 cd TG43-app
 pip install -r requirements.txt
 streamlit run app.py
+```
 
 ---
 
@@ -44,7 +44,7 @@ It has not been clinically commissioned or validated and must not be used for pa
 
 If you use this tool in research, teaching, or publications, please cite:
 
-> Osman, A. F. I. (2025). *TG-43 Ir-192 HDR Dose Calculation Tool (v0.1.0)*. https://github.com/afiosman 
+> Osman, A. F. I. (2025). *TG-43 Ir-192 HDR Dose Calculation Tool (v0.1.0)*. https://github.com/afiosman
 
 ---
 
