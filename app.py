@@ -563,8 +563,8 @@ st.markdown(
         .footer-link:hover {
             color: #ffffff;
         }
-    </style>
-
+        </style>
+        
     <div class="footer-box">
         © 2025 • For questions, suggestions, or bug reports, please contact:<br>
         <strong>Alexander F. I. Osman</strong>, PhD Student,<br>
@@ -573,6 +573,10 @@ st.markdown(
         <a class="footer-link" href="mailto:alexanderfadul@yahoo.com">
             alexanderfadul@yahoo.com
         </a>
+        <br><br>
+        <span style="font-size:12px; color:#F7B718;">
+            This tool is a student research project and is not an official product of Virginia Commonwealth University.
+        </span>
     </div>
     """,
     unsafe_allow_html=True,
